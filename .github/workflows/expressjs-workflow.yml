@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  test:
+    runs-on: default
+    steps:
+      - name: Run Test
+        uses: ./.github/actions/test
+
+  build-push:
+    needs: test
+    runs-on: default
+    steps:
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          image-name: your-dockerhub-user/my-app
+          image-tag: latest
+
+  scan:
+    needs: build-push
+    runs-on: default
+    continue-on-error: true
+    steps:
+      - name: Scan Image
+        uses: ./.github/actions/scan
+        with:
+          image-name: your-dockerhub-user/my-app
+          image-tag: latest
+
+  clean:
+    if: failure()
+    needs: scan
+    runs-on: default
+    steps:
+      - name: Clean Docker Image
+        uses: ./.github/actions/clean
+        with:
+          image-name: your-dockerhub-user/my-app
+          image-tag: latest
+
+  deploy:
+    needs: [scan, clean]
+    if: success()
+    runs-on: default
+    steps:
+      - name: Deploy Docker container
+        uses: ./.github/actions/deploy
+        with:
+          image-name: your-dockerhub-user/my-app
+          image-tag: latest
+          container-name: my-app
+          port: 80

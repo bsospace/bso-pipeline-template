@@ -1,0 +1,31 @@
+name: "Deploy Docker Container"
+description: "Deploy Docker container with specific image tag"
+inputs:
+  image-name:
+    description: "Name of the Docker image to deploy"
+    required: true
+  image-tag:
+    description: "Image tag to deploy"
+    required: true
+  service-name:
+    description: "Service Name of application deploying"
+    required: true
+  port:
+    description: "Port of container deploying"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Stop old container
+      shell: bash
+      run: |
+        docker stop ${{ inputs.container-name }} || true
+        docker rm ${{ inputs.container-name }} || true
+
+    - name: Run new container
+      shell: bash
+      run: |
+        docker run -d \
+          --name ${{ inputs.container-name }} \
+          -p ${{ inputs.port }}:${{ inputs.port }} \
+          ${{ inputs.image-name }}:${{ inputs.image-tag }}
