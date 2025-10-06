@@ -20,6 +20,7 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v4
       - name: Run Test
         uses: ./.github/actions/test
 
@@ -27,6 +28,7 @@ jobs:
     needs: test
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v4
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
@@ -38,6 +40,7 @@ jobs:
     runs-on: self-hosted
     continue-on-error: true
     steps:
+      - uses: actions/checkout@v4
       - name: Scan Image
         uses: ./.github/actions/scan
         with:
@@ -49,6 +52,7 @@ jobs:
     needs: scan
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v4
       - name: Clean Docker Image
         uses: ./.github/actions/clean
         with:
@@ -60,6 +64,7 @@ jobs:
     if: success()
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v4
       - name: Deploy Docker container
         uses: ./.github/actions/deploy
         with:
