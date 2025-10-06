@@ -1,0 +1,1 @@
+# bso-pipeline-template
