@@ -1,59 +1,69 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      - master
+  workflow_call:
+    inputs:
+      IMAGE_NAME:
+        description: "Docker image tag"
+        required: true
+        type: string
+      SERVICE_NAME: 
+        description: "Service name"
+        type: string
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 
 jobs:
   test:
-    runs-on: default
+    runs-on: self-hosted
     steps:
       - name: Run Test
         uses: ./.github/actions/test
 
   build-push:
     needs: test
-    runs-on: default
+    runs-on: self-hosted
     steps:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
           image-name: your-dockerhub-user/my-app
-          image-tag: latest
+          image-tag: ${{ inputs.image-tag }}
 
   scan:
     needs: build-push
-    runs-on: default
+    runs-on: self-hosted
     continue-on-error: true
     steps:
       - name: Scan Image
         uses: ./.github/actions/scan
         with:
           image-name: your-dockerhub-user/my-app
-          image-tag: latest
+          image-tag: ${{ inputs.image-tag }}
 
   clean:
     if: failure()
     needs: scan
-    runs-on: default
+    runs-on: self-hosted
     steps:
       - name: Clean Docker Image
         uses: ./.github/actions/clean
         with:
           image-name: your-dockerhub-user/my-app
-          image-tag: latest
+          image-tag: ${{ inputs.image-tag }}
 
   deploy:
     needs: [scan, clean]
     if: success()
-    runs-on: default
+    runs-on: self-hosted
     steps:
       - name: Deploy Docker container
         uses: ./.github/actions/deploy
         with:
           image-name: your-dockerhub-user/my-app
-          image-tag: latest
+          image-tag: ${{ inputs.image-tag }}
           container-name: my-app
           port: 80
